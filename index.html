@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mileage Calculator & Fuel Log</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        #uploadFile {
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Mileage Calculator Section -->
+        <div class="section">
+            <h1>Mileage Calculator</h1>
+            <form id="mileageForm">
+                <label for="tankCapacity">Tank Capacity (liters):</label>
+                <input type="number" id="tankCapacity" step="0.1" min="0" required>
+
+                <label for="fullPoints">Fuel Meter Points (Full Tank):</label>
+                <input type="number" id="fullPoints" min="1" required>
+
+                <label for="remainingPoints">Remaining Points:</label>
+                <input type="number" id="remainingPoints" min="0" required>
+
+                <label for="distance">Distance Traveled (km):</label>
+                <input type="number" id="distance" min="0" required>
+
+                <button type="submit">Calculate Mileage</button>
+            </form>
+            <div id="result"></div>
+        </div>
+
+        <!-- Fuel Log Section -->
+        <div class="section">
+            <h1>Fuel Log</h1>
+            <div class="instructions">
+                1. Upload your <code>fuel_log.txt</code> to load data (optional).<br>
+                2. Add new entries below.<br>
+                3. Download the updated log to save it.
+            </div>
+            <label for="uploadFile">Load Fuel Log:</label>
+            <input type="file" id="uploadFile" accept=".txt">
+            <form id="fuelForm">
+                <label for="fuelDate">Date:</label>
+                <input type="date" id="fuelDate" required>
+
+                <label for="fuelFilled">Fuel Filled (liters):</label>
+                <input type="number" id="fuelFilled" step="0.1" min="0" required>
+
+                <label for="fuelCost">Cost:</label>
+                <input type="number" id="fuelCost" step="0.01" min="0" required>
+
+                <button type="submit">Add to Log</button>
+            </form>
+            <button id="downloadBtn">Download Log</button>
+            <table id="fuelTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Fuel Filled (L)</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody id="fuelTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Mileage Calculator Logic
+        document.getElementById('mileageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const tankCapacity = parseFloat(document.getElementById('tankCapacity').value);
+            const fullPoints = parseInt(document.getElementById('fullPoints').value);
+            const remainingPoints = parseInt(document.getElementById('remainingPoints').value);
+            const distance = parseFloat(document.getElementById('distance').value);
+
+            if (remainingPoints > fullPoints) {
+                document.getElementById('result').innerHTML = "Error: Remaining points cannot exceed full points!";
+                return;
+            }
+
+            const litersPerPoint = tankCapacity / fullPoints;
+            const pointsUsed = fullPoints - remainingPoints;
+            const fuelConsumed = pointsUsed * litersPerPoint;
+            const mileage = distance / fuelConsumed;
+
+            document.getElementById('result').innerHTML = `Mileage: ${mileage.toFixed(2)} km/L`;
+        });
+
+        // Fuel Log Logic
+        let fuelData = []; // In-memory storage
+
+        function displayFuelData() {
+            const tableBody = document.getElementById('fuelTableBody');
+            tableBody.innerHTML = '';
+            fuelData.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.fuelFilled}</td>
+                    <td>${entry.cost}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Upload File Logic
+        document.getElementById('uploadFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                fuelData = []; // Reset current data
+                const lines = text.split('\n');
+                lines.forEach((line, index) => {
+                    if (index === 0 || line.trim() === '') return; // Skip header or empty lines
+                    const [date, fuelFilled, cost] = line.split(',');
+                    if (date && fuelFilled && cost) {
+                        fuelData.push({
+                            date: date.trim(),
+                            fuelFilled: parseFloat(fuelFilled.trim()),
+                            cost: parseFloat(cost.trim())
+                        });
+                    }
+                });
+                displayFuelData();
+            };
+            reader.readAsText(file);
+        });
+
+        // Add to Fuel Log
+        document.getElementById('fuelForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const fuelDate = document.getElementById('fuelDate').value;
+            const fuelFilled = parseFloat(document.getElementById('fuelFilled').value);
+            const fuelCost = parseFloat(document.getElementById('fuelCost').value);
+
+            fuelData.push({ date: fuelDate, fuelFilled: fuelFilled, cost: fuelCost });
+            displayFuelData();
+
+            // Clear form
+            document.getElementById('fuelForm').reset();
+        });
+
+        // Download Fuel Log as Text File
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (fuelData.length === 0) {
+                alert('No data to download!');
+                return;
+            }
+
+            // Format the data as a text string
+            let textContent = 'Date,Fuel Filled (L),Cost\n';
+            fuelData.forEach(entry => {
+                textContent += `${entry.date},${entry.fuelFilled},${entry.cost}\n`;
+            });
+
+            // Create a Blob with the text content
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+
+            // Create a temporary link to download the file
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fuel_log.txt'; // File name
+            document.body.appendChild(a);
+            a.click();
+
+            // Clean up
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+
+        // Initial display (empty unless file is uploaded)
+        displayFuelData();
+    </script>
+</body>
+</html>
