@@ -145,9 +145,11 @@
             <div class="instructions">
                 1. Load your <code>fuel_log.txt</code> file to start.<br>
                 2. Add or delete entries below.<br>
-                3. Click "Save Log" to update the same file.
+                3. Click "Save Log" to download the updated file.<br>
+                4. On iPhone: Move the downloaded file to the same folder as your original in the Files app.
             </div>
-            <button id="loadBtn">Load Fuel Log</button>
+            <label for="loadFile">Load Fuel Log:</label>
+            <input type="file" id="loadFile" accept=".txt">
             <form id="fuelForm">
                 <label for="fuelDate">Date:</label>
                 <input type="date" id="fuelDate" required>
@@ -200,7 +202,6 @@
 
         // Fuel Log Logic
         let fuelData = []; // In-memory storage
-        let fileHandle = null; // Store the file handle for saving
 
         function displayFuelData() {
             const tableBody = document.getElementById('fuelTableBody');
@@ -220,66 +221,41 @@
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    fuelData.splice(index, 1); // Remove the entry
+                    fuelData.splice(index, 1); // Remove the entry at the specified index
                     displayFuelData(); // Refresh the table
                 });
             });
         }
 
-        // Load File Logic with File System Access API
-        document.getElementById('loadBtn').addEventListener('click', async function() {
-            try {
-                if ('showOpenFilePicker' in window) {
-                    // Use File System Access API
-                    [fileHandle] = await window.showOpenFilePicker({
-                        types: [{
-                            description: 'Text Files',
-                            accept: {'text/plain': ['.txt']},
-                        }],
-                        suggestedName: 'fuel_log.txt'
-                    });
-                    const file = await fileHandle.getFile();
-                    const text = await file.text();
-                    parseFuelData(text);
-                } else {
-                    // Fallback to traditional file input
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = '.txt';
-                    input.onchange = function(event) {
-                        const file = event.target.files[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            parseFuelData(e.target.result);
-                        };
-                        reader.readAsText(file);
-                    };
-                    input.click();
-                }
-            } catch (error) {
-                console.log('Error loading file:', error);
-                fuelData = [];
+        // Load File Logic
+        document.getElementById('loadFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                fuelData = []; // Reset to empty if no file is selected
                 displayFuelData();
+                return;
             }
-        });
 
-        function parseFuelData(text) {
-            fuelData = [];
-            const lines = text.split('\n');
-            lines.forEach((line, index) => {
-                if (index === 0 || line.trim() === '') return; // Skip header or empty lines
-                const [date, fuelFilled, cost] = line.split(',');
-                if (date && fuelFilled && cost) {
-                    fuelData.push({
-                        date: date.trim(),
-                        fuelFilled: parseFloat(fuelFilled.trim()),
-                        cost: parseFloat(cost.trim())
-                    });
-                }
-            });
-            displayFuelData();
-        }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                fuelData = []; // Reset current data
+                const lines = text.split('\n');
+                lines.forEach((line, index) => {
+                    if (index === 0 || line.trim() === '') return; // Skip header or empty lines
+                    const [date, fuelFilled, cost] = line.split(',');
+                    if (date && fuelFilled && cost) {
+                        fuelData.push({
+                            date: date.trim(),
+                            fuelFilled: parseFloat(fuelFilled.trim()),
+                            cost: parseFloat(cost.trim())
+                        });
+                    }
+                });
+                displayFuelData();
+            };
+            reader.readAsText(file);
+        });
 
         // Add to Fuel Log
         document.getElementById('fuelForm').addEventListener('submit', function(event) {
@@ -296,8 +272,8 @@
             document.getElementById('fuelForm').reset();
         });
 
-        // Save Fuel Log to the Same File
-        document.getElementById('saveBtn').addEventListener('click', async function() {
+        // Save Fuel Log to Local Device as Text File
+        document.getElementById('saveBtn').addEventListener('click', function() {
             if (fuelData.length === 0) {
                 alert('No data to save!');
                 return;
@@ -309,36 +285,20 @@
                 textContent += `${entry.date},${entry.fuelFilled},${entry.cost}\n`;
             });
 
-            if ('showSaveFilePicker' in window && fileHandle) {
-                // Use File System Access API to save to the same file
-                try {
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(textContent);
-                    await writable.close();
-                    alert('Fuel log saved successfully to the original file!');
-                } catch (error) {
-                    console.log('Error saving file:', error);
-                    alert('Failed to save directly. Using download fallback.');
-                    fallbackSave(textContent);
-                }
-            } else {
-                // Fallback to download if API not supported or no file handle
-                fallbackSave(textContent);
-            }
-        });
-
-        function fallbackSave(textContent) {
+            // Download the file
             const blob = new Blob([textContent], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'fuel_log.txt';
+            a.download = 'fuel_log.txt'; // Default file name
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            alert('Please save fuel_log.txt over your original file.');
-        }
+
+            // Instructions for iPhone users
+            alert('File downloaded to your Downloads folder. On iPhone: Open the Files app, find fuel_log.txt in Downloads, and move it to the same folder as your original file to overwrite it.');
+        });
 
         // Initial display (empty until a file is loaded)
         displayFuelData();
