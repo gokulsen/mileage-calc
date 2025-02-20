@@ -128,11 +128,11 @@
         <div class="section">
             <h1>Fuel Log</h1>
             <div class="instructions">
-                1. Upload your <code>fuel_log.txt</code> to load data (optional).<br>
+                1. Data loads from <code>fuel_log.txt</code> in the repository.<br>
                 2. Add new entries below.<br>
-                3. Download the updated log to save it.
+                3. Download the updated log and commit it to GitHub.
             </div>
-            <label for="uploadFile">Load Fuel Log:</label>
+            <label for="uploadFile">Override with Local File (optional):</label>
             <input type="file" id="uploadFile" accept=".txt">
             <form id="fuelForm">
                 <label for="fuelDate">Date:</label>
@@ -200,7 +200,34 @@
             });
         }
 
-        // Upload File Logic
+        // Load fuel_log.txt from repository on page load
+        fetch('fuel_log.txt')
+            .then(response => {
+                if (!response.ok) {
+                    console.log('No fuel_log.txt found or empty. Starting fresh.');
+                    return '';
+                }
+                return response.text();
+            })
+            .then(text => {
+                fuelData = [];
+                const lines = text.split('\n');
+                lines.forEach((line, index) => {
+                    if (index === 0 || line.trim() === '') return; // Skip header or empty lines
+                    const [date, fuelFilled, cost] = line.split(',');
+                    if (date && fuelFilled && cost) {
+                        fuelData.push({
+                            date: date.trim(),
+                            fuelFilled: parseFloat(fuelFilled.trim()),
+                            cost: parseFloat(cost.trim())
+                        });
+                    }
+                });
+                displayFuelData();
+            })
+            .catch(error => console.log('Error fetching fuel_log.txt:', error));
+
+        // Upload File Logic (Override)
         document.getElementById('uploadFile').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -269,9 +296,6 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         });
-
-        // Initial display (empty unless file is uploaded)
-        displayFuelData();
     </script>
 </body>
 </html>
