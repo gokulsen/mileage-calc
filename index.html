@@ -89,7 +89,7 @@
             background-color: #f2f2f2;
         }
 
-        #uploadFile {
+        #loadFile {
             margin-bottom: 10px;
         }
 
@@ -143,12 +143,12 @@
         <div class="section">
             <h1>Fuel Log</h1>
             <div class="instructions">
-                1. Data loads from <code>fuel_log.txt</code> in the repository.<br>
+                1. Load your <code>fuel_log.txt</code> file to start.<br>
                 2. Add or delete entries below.<br>
-                3. Download the updated log and commit it to GitHub.
+                3. Save the updated log to your device.
             </div>
-            <label for="uploadFile">Override with Local File (optional):</label>
-            <input type="file" id="uploadFile" accept=".txt">
+            <label for="loadFile">Load Fuel Log:</label>
+            <input type="file" id="loadFile" accept=".txt">
             <form id="fuelForm">
                 <label for="fuelDate">Date:</label>
                 <input type="date" id="fuelDate" required>
@@ -161,7 +161,7 @@
 
                 <button type="submit">Add to Log</button>
             </form>
-            <button id="downloadBtn">Download Log</button>
+            <button id="saveBtn">Save Log</button>
             <table id="fuelTable">
                 <thead>
                     <tr>
@@ -226,35 +226,8 @@
             });
         }
 
-        // Load fuel_log.txt from repository on page load
-        fetch('fuel_log.txt')
-            .then(response => {
-                if (!response.ok) {
-                    console.log('No fuel_log.txt found or empty. Starting fresh.');
-                    return '';
-                }
-                return response.text();
-            })
-            .then(text => {
-                fuelData = [];
-                const lines = text.split('\n');
-                lines.forEach((line, index) => {
-                    if (index === 0 || line.trim() === '') return; // Skip header or empty lines
-                    const [date, fuelFilled, cost] = line.split(',');
-                    if (date && fuelFilled && cost) {
-                        fuelData.push({
-                            date: date.trim(),
-                            fuelFilled: parseFloat(fuelFilled.trim()),
-                            cost: parseFloat(cost.trim())
-                        });
-                    }
-                });
-                displayFuelData();
-            })
-            .catch(error => console.log('Error fetching fuel_log.txt:', error));
-
-        // Upload File Logic (Override)
-        document.getElementById('uploadFile').addEventListener('change', function(event) {
+        // Load File Logic
+        document.getElementById('loadFile').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -294,10 +267,10 @@
             document.getElementById('fuelForm').reset();
         });
 
-        // Download Fuel Log as Text File
-        document.getElementById('downloadBtn').addEventListener('click', function() {
+        // Save Fuel Log to Local Device as Text File
+        document.getElementById('saveBtn').addEventListener('click', function() {
             if (fuelData.length === 0) {
-                alert('No data to download!');
+                alert('No data to save!');
                 return;
             }
 
@@ -314,7 +287,7 @@
             // Create a temporary link to download the file
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'fuel_log.txt'; // File name
+            a.download = 'fuel_log.txt'; // Default file name
             document.body.appendChild(a);
             a.click();
 
@@ -322,6 +295,9 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         });
+
+        // Initial display (empty until a file is loaded)
+        displayFuelData();
     </script>
 </body>
 </html>
