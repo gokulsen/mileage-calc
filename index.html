@@ -99,6 +99,21 @@
             margin-bottom: 15px;
             text-align: left;
         }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
@@ -129,7 +144,7 @@
             <h1>Fuel Log</h1>
             <div class="instructions">
                 1. Data loads from <code>fuel_log.txt</code> in the repository.<br>
-                2. Add new entries below.<br>
+                2. Add or delete entries below.<br>
                 3. Download the updated log and commit it to GitHub.
             </div>
             <label for="uploadFile">Override with Local File (optional):</label>
@@ -153,6 +168,7 @@
                         <th>Date</th>
                         <th>Fuel Filled (L)</th>
                         <th>Cost</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="fuelTableBody"></tbody>
@@ -189,14 +205,24 @@
         function displayFuelData() {
             const tableBody = document.getElementById('fuelTableBody');
             tableBody.innerHTML = '';
-            fuelData.forEach(entry => {
+            fuelData.forEach((entry, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${entry.date}</td>
                     <td>${entry.fuelFilled}</td>
                     <td>${entry.cost}</td>
+                    <td><button class="delete-btn" data-index="${index}">Delete</button></td>
                 `;
                 tableBody.appendChild(row);
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    fuelData.splice(index, 1); // Remove the entry at the specified index
+                    displayFuelData(); // Refresh the table
+                });
             });
         }
 
