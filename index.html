@@ -7,11 +7,12 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f5f5f5; /* Light gray background */
             margin: 0;
             padding: 20px;
             min-height: 100vh;
             box-sizing: border-box;
+            color: #333; /* Dark text for contrast on light background */
         }
 
         .wrapper {
@@ -20,7 +21,7 @@
         }
 
         .page-header {
-            background-color: #2985A5;
+            background-color: #1f6b85;
             color: white;
             padding: 20px;
             text-align: center;
@@ -48,7 +49,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 360px;
+            max-width: 400px;
             box-sizing: border-box;
             flex: 1;
         }
@@ -57,7 +58,7 @@
             font-size: 24px;
             margin: 0 0 20px;
             text-align: center;
-            color: #2985A5;
+            color: #1f6b85;
         }
 
         .instructions {
@@ -94,7 +95,7 @@
         }
 
         button {
-            background-color: #2985A5;
+            background-color: #1f6b85;
             color: white;
             padding: 12px;
             border: none;
@@ -107,7 +108,7 @@
         }
 
         button:hover {
-            background-color: #1f6b85;
+            background-color: #2985A5;
         }
 
         #result {
@@ -121,63 +122,69 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            table-layout: auto; /* Adjust columns based on content */
         }
 
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 6px; /* Reduced padding to fit more content */
             text-align: left;
+            white-space: nowrap; /* Prevent wrapping */
         }
 
         th {
             background-color: #f2f2f2;
             font-weight: bold;
             color: #555;
-            cursor: pointer; /* Indicate clickable */
+            cursor: pointer;
             position: relative;
         }
 
         th:hover {
-            background-color: #e8e8e8; /* Hover effect */
+            background-color: #e8e8e8;
         }
 
         th.sortable::after {
-            content: ' ↕'; /* Default arrow indicating sortable */
+            content: ' ↕';
             font-size: 12px;
         }
 
         th.sort-asc::after {
-            content: ' ↑'; /* Up arrow for ascending */
+            content: ' ↑';
         }
 
         th.sort-desc::after {
-            content: ' ↓'; /* Down arrow for descending */
+            content: ' ↓';
         }
 
         td {
             color: #333;
         }
 
-        th:nth-child(1), td:nth-child(1) { width: 25%; } /* Date */
-        th:nth-child(2), td:nth-child(2) { width: 20%; } /* Fuel Filled */
-        th:nth-child(3), td:nth-child(3) { width: 20%; } /* Cost */
-        th:nth-child(4), td:nth-child(4) { width: 25%; } /* Mileage */
-        th:nth-child(5), td:nth-child(5) { width: 10%; } /* Action */
+        /* Adjusted minimum widths for columns */
+        th, td {
+            min-width: 50px; /* Minimum width to fit content */
+        }
 
-        .mileage-input {
+        .editable-input {
             width: 100%;
-            min-width: 70px;
-            padding: 5px;
+            min-width: 60px; /* Adjusted to fit 4-5 digits */
+            max-width: 100%;
+            padding: 4px; /* Reduced padding */
             border: 1px solid #ccc;
             border-radius: 3px;
-            font-size: 14px;
+            font-size: 12px; /* Slightly smaller font */
             box-sizing: border-box;
+        }
+
+        .tank-capacity-container {
+            margin-bottom: 20px;
         }
 
         .delete-btn {
             background-color: #dc3545;
             color: white;
-            padding: 6px 12px;
+            padding: 4px 8px; /* Reduced padding */
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -194,7 +201,7 @@
             font-size: 16px;
             font-weight: bold;
             text-align: right;
-            color: #2985A5;
+            color: #1f6b85;
             padding: 5px 0;
         }
 
@@ -215,11 +222,15 @@
 
             th, td {
                 font-size: 12px;
-                padding: 8px;
+                padding: 4px;
             }
 
-            .mileage-input {
+            .editable-input {
                 min-width: 50px;
+            }
+
+            .delete-btn {
+                padding: 3px 6px;
             }
         }
     </style>
@@ -257,8 +268,8 @@
                 <div class="instructions">
                     1. Load your <code>fuel_log.txt</code> file (optional; data auto-loads from last session if not cleared).<br>
                     2. Add entries below or load a file.<br>
-                    3. Edit mileage or sort by date in the table, then save.<br>
-                    4. On your Mobile Phone: Move the downloaded file to your original folder in the Files app.
+                    3. Edit tank capacity, distance, and fuel left in the table; mileage updates live.<br>
+                    4. On iPhone: Move the downloaded file to your original folder in the Files app.
                 </div>
                 <label for="loadFile">Load Fuel Log:</label>
                 <input type="file" id="loadFile" accept=".txt">
@@ -279,12 +290,18 @@
             <!-- Column 3: Fuel Log Table -->
             <div class="section">
                 <h1>Fuel Log Table</h1>
+                <div class="tank-capacity-container">
+                    <label for="tankCapacityTable">Tank Capacity (liters):</label>
+                    <input type="number" id="tankCapacityTable" step="0.1" min="0" value="">
+                </div>
                 <table id="fuelTable">
                     <thead>
                         <tr>
                             <th class="sortable" id="sortDate">Date</th>
                             <th>Fuel Filled (L)</th>
                             <th>Cost</th>
+                            <th>Distance Run (km)</th>
+                            <th>Fuel Left (L)</th>
                             <th>Mileage (km/L)</th>
                             <th>Action</th>
                         </tr>
@@ -322,7 +339,8 @@
 
         // Fuel Log Logic
         let fuelData = [];
-        let sortDirection = 'asc'; // Default sort direction
+        let sortDirection = 'asc';
+        let tankCapacity = null;
 
         // Load from LocalStorage on page load
         const savedData = localStorage.getItem('fuelLog');
@@ -330,16 +348,28 @@
             fuelData = JSON.parse(savedData);
         }
 
+        function calculateMileage(distanceRun, tankCapacity, fuelLeft) {
+            if (distanceRun && tankCapacity && fuelLeft >= 0 && tankCapacity > fuelLeft) {
+                const fuelConsumed = tankCapacity - fuelLeft;
+                return (distanceRun / fuelConsumed).toFixed(2);
+            }
+            return '';
+        }
+
         function displayFuelData() {
             const tableBody = document.getElementById('fuelTableBody');
+            tankCapacity = parseFloat(document.getElementById('tankCapacityTable').value) || null;
             tableBody.innerHTML = '';
             fuelData.forEach((entry, index) => {
+                const mileage = calculateMileage(entry.distanceRun, tankCapacity, entry.fuelLeft);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${entry.date}</td>
                     <td>${entry.fuelFilled}</td>
                     <td>${entry.cost}</td>
-                    <td><input type="number" class="mileage-input" value="${entry.mileage || ''}" step="0.01" min="0" data-index="${index}"></td>
+                    <td><input type="number" class="editable-input distance-input" value="${entry.distanceRun || ''}" step="0.1" min="0" data-index="${index}"></td>
+                    <td><input type="number" class="editable-input fuel-left-input" value="${entry.fuelLeft || ''}" step="0.1" min="0" data-index="${index}"></td>
+                    <td><input type="number" class="editable-input mileage-input" value="${mileage}" step="0.01" min="0" data-index="${index}" readonly></td>
                     <td><button class="delete-btn" data-index="${index}">Delete</button></td>
                 `;
                 tableBody.appendChild(row);
@@ -355,12 +385,23 @@
                 });
             });
 
-            // Add event listeners to mileage inputs
-            document.querySelectorAll('.mileage-input').forEach(input => {
-                input.addEventListener('change', function() {
+            // Add event listeners to editable inputs
+            document.querySelectorAll('.distance-input').forEach(input => {
+                input.addEventListener('input', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    const mileage = parseFloat(this.value) || 0;
-                    fuelData[index].mileage = mileage;
+                    const distanceRun = parseFloat(this.value) || 0;
+                    fuelData[index].distanceRun = distanceRun;
+                    updateMileage(index);
+                    localStorage.setItem('fuelLog', JSON.stringify(fuelData));
+                });
+            });
+
+            document.querySelectorAll('.fuel-left-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const fuelLeft = parseFloat(this.value) || 0;
+                    fuelData[index].fuelLeft = fuelLeft;
+                    updateMileage(index);
                     localStorage.setItem('fuelLog', JSON.stringify(fuelData));
                 });
             });
@@ -378,6 +419,20 @@
                 sortDateHeader.classList.add('sort-desc');
             }
         }
+
+        function updateMileage(index) {
+            const entry = fuelData[index];
+            const mileage = calculateMileage(entry.distanceRun, tankCapacity, entry.fuelLeft);
+            fuelData[index].mileage = mileage ? parseFloat(mileage) : null;
+            const mileageInput = document.querySelector(`.mileage-input[data-index="${index}"]`);
+            if (mileageInput) mileageInput.value = mileage;
+        }
+
+        // Tank Capacity Input Listener
+        document.getElementById('tankCapacityTable').addEventListener('input', function() {
+            tankCapacity = parseFloat(this.value) || null;
+            displayFuelData();
+        });
 
         // Sort table by date
         document.getElementById('sortDate').addEventListener('click', function() {
@@ -403,12 +458,14 @@
                 const lines = text.split('\n');
                 lines.forEach((line, index) => {
                     if (index === 0 || line.trim() === '') return;
-                    const [date, fuelFilled, cost, mileage] = line.split(',');
+                    const [date, fuelFilled, cost, distanceRun, fuelLeft, mileage] = line.split(',');
                     if (date && fuelFilled && cost) {
                         fuelData.push({
                             date: date.trim(),
                             fuelFilled: parseFloat(fuelFilled.trim()),
                             cost: parseFloat(cost.trim()),
+                            distanceRun: distanceRun ? parseFloat(distanceRun.trim()) : null,
+                            fuelLeft: fuelLeft ? parseFloat(fuelLeft.trim()) : null,
                             mileage: mileage ? parseFloat(mileage.trim()) : null
                         });
                     }
@@ -427,7 +484,14 @@
             const fuelFilled = parseFloat(document.getElementById('fuelFilled').value);
             const fuelCost = parseFloat(document.getElementById('fuelCost').value);
 
-            fuelData.push({ date: fuelDate, fuelFilled: fuelFilled, cost: fuelCost, mileage: null });
+            fuelData.push({ 
+                date: fuelDate, 
+                fuelFilled: fuelFilled, 
+                cost: fuelCost, 
+                distanceRun: null, 
+                fuelLeft: null, 
+                mileage: null 
+            });
             localStorage.setItem('fuelLog', JSON.stringify(fuelData));
             displayFuelData();
 
@@ -441,9 +505,9 @@
                 return;
             }
 
-            let textContent = 'Date,Fuel Filled (L),Cost,Mileage (km/L)\n';
+            let textContent = 'Date,Fuel Filled (L),Cost,Distance Run (km),Fuel Left (L),Mileage (km/L)\n';
             fuelData.forEach(entry => {
-                textContent += `${entry.date},${entry.fuelFilled},${entry.cost},${entry.mileage || ''}\n`;
+                textContent += `${entry.date},${entry.fuelFilled},${entry.cost},${entry.distanceRun || ''},${entry.fuelLeft || ''},${entry.mileage || ''}\n`;
             });
 
             const blob = new Blob([textContent], { type: 'text/plain' });
