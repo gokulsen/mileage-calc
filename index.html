@@ -8,62 +8,100 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            margin: 0;
+            padding: 20px;
             min-height: 100vh;
-            margin: 20px;
+            box-sizing: border-box;
+        }
+
+        .wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background-color: #2985A5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: white;
         }
 
         .container {
             display: flex;
-            gap: 20px;
-            max-width: 800px;
             flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
         }
 
         .section {
             background-color: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 360px;
+            box-sizing: border-box;
+            flex: 1;
         }
 
         h1 {
             font-size: 24px;
-            margin-bottom: 20px;
+            margin: 0 0 20px;
             text-align: center;
+            color: #2985A5; /* Teal for section headings */
+        }
+
+        .instructions {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: left;
+            line-height: 1.5;
         }
 
         label {
             display: block;
+            font-size: 14px;
+            font-weight: bold;
             margin: 10px 0 5px;
             text-align: left;
+            color: #555;
         }
 
         input {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
             box-sizing: border-box;
+            font-size: 14px;
         }
 
         button {
-            background-color: #28a745;
+            background-color: #2985A5; /* Teal for buttons */
             color: white;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
             width: 100%;
+            font-size: 16px;
             margin-top: 10px;
+            transition: background-color 0.3s;
         }
 
         button:hover {
-            background-color: #218838;
+            background-color: #1f6b85; /* Darker teal on hover */
         }
 
         #result {
@@ -76,104 +114,140 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            font-size: 14px;
         }
 
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             text-align: left;
         }
 
         th {
             background-color: #f2f2f2;
+            font-weight: bold;
+            color: #555;
+        }
+
+        td {
+            color: #333;
         }
 
         #loadFile {
-            margin-bottom: 10px;
-        }
-
-        .instructions {
-            font-size: 14px;
-            color: #666;
             margin-bottom: 15px;
-            text-align: left;
+            font-size: 14px;
         }
 
         .delete-btn {
             background-color: #dc3545;
             color: white;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            width: auto;
-            margin: 0;
+            font-size: 12px;
+            transition: background-color 0.3s;
         }
 
         .delete-btn:hover {
             background-color: #c82333;
         }
+
+        #totalCost {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
+            color: #2985A5; /* Teal for total cost */
+            padding: 5px 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .section {
+                max-width: 100%;
+            }
+
+            .page-header {
+                border-radius: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Mileage Calculator Section -->
-        <div class="section">
-            <h1>Mileage Calculator</h1>
-            <form id="mileageForm">
-                <label for="tankCapacity">Tank Capacity (liters):</label>
-                <input type="number" id="tankCapacity" step="0.1" min="0" required>
-
-                <label for="fullPoints">Fuel Meter Points (Full Tank):</label>
-                <input type="number" id="fullPoints" min="1" required>
-
-                <label for="remainingPoints">Remaining Points:</label>
-                <input type="number" id="remainingPoints" min="0" required>
-
-                <label for="distance">Distance Traveled (km):</label>
-                <input type="number" id="distance" min="0" required>
-
-                <button type="submit">Calculate Mileage</button>
-            </form>
-            <div id="result"></div>
+    <div class="wrapper">
+        <div class="page-header">
+            <h1>Mileage & Fuel Tracker</h1>
         </div>
+        <div class="container">
+            <!-- Column 1: Mileage Calculator -->
+            <div class="section">
+                <h1>Mileage Calculator</h1>
+                <form id="mileageForm">
+                    <label for="tankCapacity">Tank Capacity (liters):</label>
+                    <input type="number" id="tankCapacity" step="0.1" min="0" required>
 
-        <!-- Fuel Log Section -->
-        <div class="section">
-            <h1>Fuel Log</h1>
-            <div class="instructions">
-                1. Load your <code>fuel_log.txt</code> file to start.<br>
-                2. Add or delete entries below.<br>
-                3. Click "Save Log" to download the updated file.<br>
-                4. On iPhone: Move the downloaded file to the same folder as your original in the Files app.
+                    <label for="fullPoints">Fuel Meter Points (Full Tank):</label>
+                    <input type="number" id="fullPoints" min="1" required>
+
+                    <label for="remainingPoints">Remaining Points:</label>
+                    <input type="number" id="remainingPoints" min="0" required>
+
+                    <label for="distance">Distance Traveled (km):</label>
+                    <input type="number" id="distance" min="0" required>
+
+                    <button type="submit">Calculate Mileage</button>
+                </form>
+                <div id="result"></div>
             </div>
-            <label for="loadFile">Load Fuel Log:</label>
-            <input type="file" id="loadFile" accept=".txt">
-            <form id="fuelForm">
-                <label for="fuelDate">Date:</label>
-                <input type="date" id="fuelDate" required>
 
-                <label for="fuelFilled">Fuel Filled (liters):</label>
-                <input type="number" id="fuelFilled" step="0.1" min="0" required>
+            <!-- Column 2: Fuel Log Input -->
+            <div class="section">
+                <h1>Fuel Log Input</h1>
+                <div class="instructions">
+                    1. Load your <code>fuel_log.txt</code> file (optional; data auto-loads from last session if not cleared).<br>
+                    2. Add entries below or load a file.<br>
+                    3. Save the log when done.<br>
+                    4. On iPhone: Move the downloaded file to your original folder in the Files app.
+                </div>
+                <label for="loadFile">Load Fuel Log:</label>
+                <input type="file" id="loadFile" accept=".txt">
+                <form id="fuelForm">
+                    <label for="fuelDate">Date:</label>
+                    <input type="date" id="fuelDate" required>
 
-                <label for="fuelCost">Cost:</label>
-                <input type="number" id="fuelCost" step="0.01" min="0" required>
+                    <label for="fuelFilled">Fuel Filled (liters):</label>
+                    <input type="number" id="fuelFilled" step="0.1" min="0" required>
 
-                <button type="submit">Add to Log</button>
-            </form>
-            <button id="saveBtn">Save Log</button>
-            <table id="fuelTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Fuel Filled (L)</th>
-                        <th>Cost</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="fuelTableBody"></tbody>
-            </table>
+                    <label for="fuelCost">Cost:</label>
+                    <input type="number" id="fuelCost" step="0.01" min="0" required>
+
+                    <button type="submit">Add to Log</button>
+                </form>
+            </div>
+
+            <!-- Column 3: Fuel Log Table -->
+            <div class="section">
+                <h1>Fuel Log Table</h1>
+                <table id="fuelTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Fuel Filled (L)</th>
+                            <th>Cost</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fuelTableBody"></tbody>
+                </table>
+                <div id="totalCost">Total Cost: 0.00</div>
+                <button id="saveBtn">Save Log</button>
+            </div>
         </div>
     </div>
 
@@ -201,7 +275,13 @@
         });
 
         // Fuel Log Logic
-        let fuelData = []; // In-memory storage
+        let fuelData = [];
+
+        // Load from LocalStorage on page load
+        const savedData = localStorage.getItem('fuelLog');
+        if (savedData) {
+            fuelData = JSON.parse(savedData);
+        }
 
         function displayFuelData() {
             const tableBody = document.getElementById('fuelTableBody');
@@ -221,28 +301,29 @@
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    fuelData.splice(index, 1); // Remove the entry at the specified index
-                    displayFuelData(); // Refresh the table
+                    fuelData.splice(index, 1);
+                    localStorage.setItem('fuelLog', JSON.stringify(fuelData));
+                    displayFuelData();
                 });
             });
+
+            // Calculate and display total cost
+            const totalCost = fuelData.reduce((sum, entry) => sum + entry.cost, 0);
+            document.getElementById('totalCost').textContent = `Total Cost: ${totalCost.toFixed(2)}`;
         }
 
         // Load File Logic
         document.getElementById('loadFile').addEventListener('change', function(event) {
             const file = event.target.files[0];
-            if (!file) {
-                fuelData = []; // Reset to empty if no file is selected
-                displayFuelData();
-                return;
-            }
+            if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                fuelData = []; // Reset current data
+                fuelData = [];
                 const lines = text.split('\n');
                 lines.forEach((line, index) => {
-                    if (index === 0 || line.trim() === '') return; // Skip header or empty lines
+                    if (index === 0 || line.trim() === '') return;
                     const [date, fuelFilled, cost] = line.split(',');
                     if (date && fuelFilled && cost) {
                         fuelData.push({
@@ -252,6 +333,7 @@
                         });
                     }
                 });
+                localStorage.setItem('fuelLog', JSON.stringify(fuelData));
                 displayFuelData();
             };
             reader.readAsText(file);
@@ -266,9 +348,9 @@
             const fuelCost = parseFloat(document.getElementById('fuelCost').value);
 
             fuelData.push({ date: fuelDate, fuelFilled: fuelFilled, cost: fuelCost });
+            localStorage.setItem('fuelLog', JSON.stringify(fuelData));
             displayFuelData();
 
-            // Clear form
             document.getElementById('fuelForm').reset();
         });
 
@@ -279,28 +361,25 @@
                 return;
             }
 
-            // Format the data as a text string
             let textContent = 'Date,Fuel Filled (L),Cost\n';
             fuelData.forEach(entry => {
                 textContent += `${entry.date},${entry.fuelFilled},${entry.cost}\n`;
             });
 
-            // Download the file
             const blob = new Blob([textContent], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'fuel_log.txt'; // Default file name
+            a.download = 'fuel_log.txt';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
 
-            // Instructions for iPhone users
             alert('File downloaded to your Downloads folder. On iPhone: Open the Files app, find fuel_log.txt in Downloads, and move it to the same folder as your original file to overwrite it.');
         });
 
-        // Initial display (empty until a file is loaded)
+        // Initial display with LocalStorage data
         displayFuelData();
     </script>
 </body>
