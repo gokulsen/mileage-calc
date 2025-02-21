@@ -163,7 +163,7 @@
         }
 
         th, td {
-            min-width: 50px;
+            min-width: 45px; /* Adjusted for 8 columns */
         }
 
         .editable-input {
@@ -175,10 +175,6 @@
             border-radius: 3px;
             font-size: 12px;
             box-sizing: border-box;
-        }
-
-        .tank-capacity-container {
-            margin-bottom: 20px;
         }
 
         .vehicle-selector {
@@ -266,13 +262,13 @@
                 <div id="result"></div>
             </div>
 
-            <!-- Column 2: Fuel Log Input -->
+            <!-- Column 2: Vehicle Selection -->
             <div class="section">
-                <h1>Fuel Log Input</h1>
+                <h1>Vehicle Selection</h1>
                 <div class="instructions">
                     1. Select or add a vehicle below.<br>
-                    2. Load a <code>fuel_log.txt</code> file or add entries.<br>
-                    3. Edit tank capacity, distance, and fuel left; mileage updates live.<br>
+                    2. Load a <code>fuel_log.txt</code> file or edit entries in the table.<br>
+                    3. All fields in the table are editable; mileage updates live.<br>
                     4. On iPhone: Move the downloaded file to your folder.
                 </div>
                 <div class="vehicle-selector">
@@ -283,31 +279,16 @@
                 </div>
                 <label for="loadFile">Load Fuel Log:</label>
                 <input type="file" id="loadFile" accept=".txt">
-                <form id="fuelForm">
-                    <label for="fuelDate">Date:</label>
-                    <input type="date" id="fuelDate" required>
-
-                    <label for="fuelFilled">Fuel Filled (liters):</label>
-                    <input type="number" id="fuelFilled" step="0.1" min="0" required>
-
-                    <label for="fuelCost">Cost:</label>
-                    <input type="number" id="fuelCost" step="0.01" min="0" required>
-
-                    <button type="submit">Add to Log</button>
-                </form>
             </div>
 
             <!-- Column 3: Fuel Log Table -->
             <div class="section">
                 <h1>Fuel Log Table</h1>
-                <div class="tank-capacity-container">
-                    <label for="tankCapacityTable">Tank Capacity (liters):</label>
-                    <input type="number" id="tankCapacityTable" step="0.1" min="0" value="">
-                </div>
                 <table id="fuelTable">
                     <thead>
                         <tr>
                             <th class="sortable" id="sortDate">Date</th>
+                            <th>Fuel Left Before (L)</th>
                             <th>Fuel Filled (L)</th>
                             <th>Cost</th>
                             <th>Distance Run (km)</th>
@@ -351,7 +332,6 @@
         let vehicleFuelLogs = {};
         let currentVehicle = null;
         let sortDirection = 'asc';
-        let tankCapacity = null;
 
         // Load from LocalStorage on page load
         const savedData = localStorage.getItem('vehicleFuelLogs');
@@ -394,28 +374,30 @@
             displayFuelData();
         });
 
-        function calculateMileage(distanceRun, tankCapacity, fuelLeft) {
-            if (distanceRun && tankCapacity && fuelLeft >= 0 && tankCapacity > fuelLeft) {
-                const fuelConsumed = tankCapacity - fuelLeft;
-                return (distanceRun / fuelConsumed).toFixed(2);
+        function calculateMileage(distanceRun, fuelLeftBefore, fuelFilled, fuelLeftAfter) {
+            if (distanceRun && fuelFilled >= 0 && fuelLeftBefore >= 0 && fuelLeftAfter >= 0) {
+                const fuelConsumed = (fuelLeftBefore + fuelFilled) - fuelLeftAfter;
+                if (fuelConsumed > 0) {
+                    return (distanceRun / fuelConsumed).toFixed(2);
+                }
             }
             return '';
         }
 
         function displayFuelData() {
             const tableBody = document.getElementById('fuelTableBody');
-            tankCapacity = parseFloat(document.getElementById('tankCapacityTable').value) || null;
             tableBody.innerHTML = '';
             if (currentVehicle && vehicleFuelLogs[currentVehicle]) {
                 vehicleFuelLogs[currentVehicle].forEach((entry, index) => {
-                    const mileage = calculateMileage(entry.distanceRun, tankCapacity, entry.fuelLeft);
+                    const mileage = calculateMileage(entry.distanceRun, entry.fuelLeftBefore, entry.fuelFilled, entry.fuelLeftAfter);
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${entry.date}</td>
-                        <td>${entry.fuelFilled}</td>
-                        <td>${entry.cost}</td>
+                        <td><input type="date" class="editable-input date-input" value="${entry.date || ''}" data-index="${index}"></td>
+                        <td><input type="number" class="editable-input fuel-left-before-input" value="${entry.fuelLeftBefore || ''}" step="0.1" min="0" data-index="${index}"></td>
+                        <td><input type="number" class="editable-input fuel-filled-input" value="${entry.fuelFilled || ''}" step="0.1" min="0" data-index="${index}"></td>
+                        <td><input type="number" class="editable-input cost-input" value="${entry.cost || ''}" step="0.01" min="0" data-index="${index}"></td>
                         <td><input type="number" class="editable-input distance-input" value="${entry.distanceRun || ''}" step="0.1" min="0" data-index="${index}"></td>
-                        <td><input type="number" class="editable-input fuel-left-input" value="${entry.fuelLeft || ''}" step="0.1" min="0" data-index="${index}"></td>
+                        <td><input type="number" class="editable-input fuel-left-after-input" value="${entry.fuelLeftAfter || ''}" step="0.1" min="0" data-index="${index}"></td>
                         <td><input type="number" class="editable-input mileage-input" value="${mileage}" step="0.01" min="0" data-index="${index}" readonly></td>
                         <td><button class="delete-btn" data-index="${index}">Delete</button></td>
                     `;
@@ -434,6 +416,45 @@
             });
 
             // Add event listeners to editable inputs
+            document.querySelectorAll('.date-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const date = this.value;
+                    vehicleFuelLogs[currentVehicle][index].date = date;
+                    localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
+                });
+            });
+
+            document.querySelectorAll('.fuel-left-before-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const fuelLeftBefore = parseFloat(this.value) || 0;
+                    vehicleFuelLogs[currentVehicle][index].fuelLeftBefore = fuelLeftBefore;
+                    updateMileage(index);
+                    localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
+                });
+            });
+
+            document.querySelectorAll('.fuel-filled-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const fuelFilled = parseFloat(this.value) || 0;
+                    vehicleFuelLogs[currentVehicle][index].fuelFilled = fuelFilled;
+                    updateMileage(index);
+                    localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
+                });
+            });
+
+            document.querySelectorAll('.cost-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const cost = parseFloat(this.value) || 0;
+                    vehicleFuelLogs[currentVehicle][index].cost = cost;
+                    updateTotalCost();
+                    localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
+                });
+            });
+
             document.querySelectorAll('.distance-input').forEach(input => {
                 input.addEventListener('input', function() {
                     const index = parseInt(this.getAttribute('data-index'));
@@ -444,45 +465,33 @@
                 });
             });
 
-            document.querySelectorAll('.fuel-left-input').forEach(input => {
+            document.querySelectorAll('.fuel-left-after-input').forEach(input => {
                 input.addEventListener('input', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    const fuelLeft = parseFloat(this.value) || 0;
-                    vehicleFuelLogs[currentVehicle][index].fuelLeft = fuelLeft;
+                    const fuelLeftAfter = parseFloat(this.value) || 0;
+                    vehicleFuelLogs[currentVehicle][index].fuelLeftAfter = fuelLeftAfter;
                     updateMileage(index);
                     localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
                 });
             });
 
-            // Update total cost
-            const totalCost = currentVehicle && vehicleFuelLogs[currentVehicle]
-                ? vehicleFuelLogs[currentVehicle].reduce((sum, entry) => sum + entry.cost, 0)
-                : 0;
-            document.getElementById('totalCost').textContent = `Total Cost: ${totalCost.toFixed(2)}`;
-
-            // Update sort indicator
-            const sortDateHeader = document.getElementById('sortDate');
-            sortDateHeader.classList.remove('sort-asc', 'sort-desc');
-            if (sortDirection === 'asc') {
-                sortDateHeader.classList.add('sort-asc');
-            } else {
-                sortDateHeader.classList.add('sort-desc');
-            }
+            updateTotalCost();
         }
 
         function updateMileage(index) {
             const entry = vehicleFuelLogs[currentVehicle][index];
-            const mileage = calculateMileage(entry.distanceRun, tankCapacity, entry.fuelLeft);
+            const mileage = calculateMileage(entry.distanceRun, entry.fuelLeftBefore, entry.fuelFilled, entry.fuelLeftAfter);
             vehicleFuelLogs[currentVehicle][index].mileage = mileage ? parseFloat(mileage) : null;
             const mileageInput = document.querySelector(`.mileage-input[data-index="${index}"]`);
             if (mileageInput) mileageInput.value = mileage;
         }
 
-        // Tank Capacity Input Listener
-        document.getElementById('tankCapacityTable').addEventListener('input', function() {
-            tankCapacity = parseFloat(this.value) || null;
-            displayFuelData();
-        });
+        function updateTotalCost() {
+            const totalCost = currentVehicle && vehicleFuelLogs[currentVehicle]
+                ? vehicleFuelLogs[currentVehicle].reduce((sum, entry) => sum + (entry.cost || 0), 0)
+                : 0;
+            document.getElementById('totalCost').textContent = `Total Cost: ${totalCost.toFixed(2)}`;
+        }
 
         // Sort table by date
         document.getElementById('sortDate').addEventListener('click', function() {
@@ -509,14 +518,15 @@
                 const lines = text.split('\n');
                 lines.forEach((line, index) => {
                     if (index === 0 || line.trim() === '') return;
-                    const [date, fuelFilled, cost, distanceRun, fuelLeft, mileage] = line.split(',');
+                    const [date, fuelLeftBefore, fuelFilled, cost, distanceRun, fuelLeftAfter, mileage] = line.split(',');
                     if (date && fuelFilled && cost) {
                         vehicleFuelLogs[currentVehicle].push({
                             date: date.trim(),
+                            fuelLeftBefore: fuelLeftBefore ? parseFloat(fuelLeftBefore.trim()) : null,
                             fuelFilled: parseFloat(fuelFilled.trim()),
                             cost: parseFloat(cost.trim()),
                             distanceRun: distanceRun ? parseFloat(distanceRun.trim()) : null,
-                            fuelLeft: fuelLeft ? parseFloat(fuelLeft.trim()) : null,
+                            fuelLeftAfter: fuelLeftAfter ? parseFloat(fuelLeftAfter.trim()) : null,
                             mileage: mileage ? parseFloat(mileage.trim()) : null
                         });
                     }
@@ -527,36 +537,6 @@
             reader.readAsText(file);
         });
 
-        // Add to Fuel Log
-        document.getElementById('fuelForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            if (!currentVehicle) {
-                alert('Please select or add a vehicle first!');
-                return;
-            }
-
-            const fuelDate = document.getElementById('fuelDate').value;
-            const fuelFilled = parseFloat(document.getElementById('fuelFilled').value);
-            const fuelCost = parseFloat(document.getElementById('fuelCost').value);
-
-            if (!vehicleFuelLogs[currentVehicle]) {
-                vehicleFuelLogs[currentVehicle] = [];
-            }
-            vehicleFuelLogs[currentVehicle].push({ 
-                date: fuelDate, 
-                fuelFilled: fuelFilled, 
-                cost: fuelCost, 
-                distanceRun: null, 
-                fuelLeft: null, 
-                mileage: null 
-            });
-            localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
-            displayFuelData();
-
-            document.getElementById('fuelForm').reset();
-        });
-
         // Save Fuel Log to Local Device as Text File
         document.getElementById('saveBtn').addEventListener('click', function() {
             if (!currentVehicle || !vehicleFuelLogs[currentVehicle] || vehicleFuelLogs[currentVehicle].length === 0) {
@@ -564,16 +544,16 @@
                 return;
             }
 
-            let textContent = 'Date,Fuel Filled (L),Cost,Distance Run (km),Fuel Left (L),Mileage (km/L)\n';
+            let textContent = 'Date,Fuel Left Before (L),Fuel Filled (L),Cost,Distance Run (km),Fuel Left (L),Mileage (km/L)\n';
             vehicleFuelLogs[currentVehicle].forEach(entry => {
-                textContent += `${entry.date},${entry.fuelFilled},${entry.cost},${entry.distanceRun || ''},${entry.fuelLeft || ''},${entry.mileage || ''}\n`;
+                textContent += `${entry.date},${entry.fuelLeftBefore || ''},${entry.fuelFilled},${entry.cost},${entry.distanceRun || ''},${entry.fuelLeftAfter || ''},${entry.mileage || ''}\n`;
             });
 
             const blob = new Blob([textContent], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${currentVehicle}_fuel_log.txt`; // Vehicle-specific file name
+            a.download = `${currentVehicle}_fuel_log.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
