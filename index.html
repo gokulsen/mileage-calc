@@ -133,14 +133,40 @@
             background-color: #f2f2f2;
             font-weight: bold;
             color: #555;
+            cursor: pointer; /* Indicate clickable */
+            position: relative;
+        }
+
+        th:hover {
+            background-color: #e8e8e8; /* Hover effect */
+        }
+
+        th.sortable::after {
+            content: ' ↕'; /* Default arrow indicating sortable */
+            font-size: 12px;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑'; /* Up arrow for ascending */
+        }
+
+        th.sort-desc::after {
+            content: ' ↓'; /* Down arrow for descending */
         }
 
         td {
             color: #333;
         }
 
+        th:nth-child(1), td:nth-child(1) { width: 25%; } /* Date */
+        th:nth-child(2), td:nth-child(2) { width: 20%; } /* Fuel Filled */
+        th:nth-child(3), td:nth-child(3) { width: 20%; } /* Cost */
+        th:nth-child(4), td:nth-child(4) { width: 25%; } /* Mileage */
+        th:nth-child(5), td:nth-child(5) { width: 10%; } /* Action */
+
         .mileage-input {
             width: 100%;
+            min-width: 70px;
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 3px;
@@ -186,6 +212,15 @@
             .page-header {
                 border-radius: 10px;
             }
+
+            th, td {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            .mileage-input {
+                min-width: 50px;
+            }
         }
     </style>
 </head>
@@ -222,8 +257,8 @@
                 <div class="instructions">
                     1. Load your <code>fuel_log.txt</code> file (optional; data auto-loads from last session if not cleared).<br>
                     2. Add entries below or load a file.<br>
-                    3. Edit mileage in the table and save the log.<br>
-                    4. On iPhone: Move the downloaded file to your original folder in the Files app.
+                    3. Edit mileage or sort by date in the table, then save.<br>
+                    4. On your Mobile Phone: Move the downloaded file to your original folder in the Files app.
                 </div>
                 <label for="loadFile">Load Fuel Log:</label>
                 <input type="file" id="loadFile" accept=".txt">
@@ -247,7 +282,7 @@
                 <table id="fuelTable">
                     <thead>
                         <tr>
-                            <th>Date</th>
+                            <th class="sortable" id="sortDate">Date</th>
                             <th>Fuel Filled (L)</th>
                             <th>Cost</th>
                             <th>Mileage (km/L)</th>
@@ -287,6 +322,7 @@
 
         // Fuel Log Logic
         let fuelData = [];
+        let sortDirection = 'asc'; // Default sort direction
 
         // Load from LocalStorage on page load
         const savedData = localStorage.getItem('fuelLog');
@@ -329,10 +365,31 @@
                 });
             });
 
-            // Calculate and display total cost
+            // Update total cost
             const totalCost = fuelData.reduce((sum, entry) => sum + entry.cost, 0);
             document.getElementById('totalCost').textContent = `Total Cost: ${totalCost.toFixed(2)}`;
+
+            // Update sort indicator
+            const sortDateHeader = document.getElementById('sortDate');
+            sortDateHeader.classList.remove('sort-asc', 'sort-desc');
+            if (sortDirection === 'asc') {
+                sortDateHeader.classList.add('sort-asc');
+            } else {
+                sortDateHeader.classList.add('sort-desc');
+            }
         }
+
+        // Sort table by date
+        document.getElementById('sortDate').addEventListener('click', function() {
+            sortDirection = (sortDirection === 'asc') ? 'desc' : 'asc';
+            fuelData.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+            localStorage.setItem('fuelLog', JSON.stringify(fuelData));
+            displayFuelData();
+        });
 
         // Load File Logic
         document.getElementById('loadFile').addEventListener('change', function(event) {
