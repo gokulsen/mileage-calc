@@ -95,6 +95,19 @@
             padding: 5px;
         }
 
+        input[type="text"]#newVehicle {
+            width: calc(100% - 130px); /* Adjust width to fit container minus button */
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        button#addVehicleBtn {
+            width: 120px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
         button {
             background-color: #1f6b85;
             color: white;
@@ -163,7 +176,7 @@
         }
 
         th, td {
-            min-width: 45px; /* Adjusted for 8 columns */
+            min-width: 45px;
         }
 
         .editable-input {
@@ -232,6 +245,15 @@
             .delete-btn {
                 padding: 3px 6px;
             }
+
+            input[type="text"]#newVehicle {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button#addVehicleBtn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -267,7 +289,7 @@
                 <h1>Vehicle Selection</h1>
                 <div class="instructions">
                     1. Select or add a vehicle below.<br>
-                    2. Load a <code>fuel_log.txt</code> file or edit entries in the table.<br>
+                    2. Load a <code>fuel_log.txt</code> file or edit/add entries in the table.<br>
                     3. All fields in the table are editable; mileage updates live.<br>
                     4. On iPhone: Move the downloaded file to your folder.
                 </div>
@@ -300,6 +322,7 @@
                     <tbody id="fuelTableBody"></tbody>
                 </table>
                 <div id="totalCost">Total Cost: 0.00</div>
+                <button id="addRowBtn">Add Row</button>
                 <button id="saveBtn">Save Log</button>
             </div>
         </div>
@@ -371,6 +394,28 @@
         // Switch vehicle
         document.getElementById('vehicleSelect').addEventListener('change', function() {
             currentVehicle = this.value;
+            displayFuelData();
+        });
+
+        // Add new row
+        document.getElementById('addRowBtn').addEventListener('click', function() {
+            if (!currentVehicle) {
+                alert('Please select or add a vehicle first!');
+                return;
+            }
+            if (!vehicleFuelLogs[currentVehicle]) {
+                vehicleFuelLogs[currentVehicle] = [];
+            }
+            vehicleFuelLogs[currentVehicle].push({
+                date: '',
+                fuelLeftBefore: null,
+                fuelFilled: null,
+                cost: null,
+                distanceRun: null,
+                fuelLeftAfter: null,
+                mileage: null
+            });
+            localStorage.setItem('vehicleFuelLogs', JSON.stringify(vehicleFuelLogs));
             displayFuelData();
         });
 
