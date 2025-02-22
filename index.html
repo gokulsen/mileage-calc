@@ -3,103 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mileage Calculator & Fuel Log</title>
+    <title>Mileage Tracker Pro</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+        /* Reset and Base Styles */
+        * {
             margin: 0;
-            padding: 20px;
-            min-height: 100vh;
+            padding: 0;
             box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
             color: #333;
+            line-height: 1.6;
+            padding: 20px;
         }
 
         .wrapper {
-            max-width: 1200px;
+            max-width: 1280px; /* Increased for better desktop layout */
             margin: 0 auto;
         }
 
+        /* Page Header */
         .page-header {
             background-color: #1f6b85;
             color: white;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
             border-radius: 10px 10px 0 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
 
         .page-header h1 {
-            margin: 0;
-            font-size: 28px;
-            color: white;
+            font-size: 32px;
+            font-weight: 500;
+			color: white;
         }
 
+        /* Container Layout */
         .container {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
+            flex-wrap: nowrap; /* Prevent wrapping on desktop */
+            gap: 30px;
+            justify-content: space-between; /* Distribute space evenly */
+            align-items: flex-start; /* Align tops of sections */
         }
 
         .section {
-            background-color: white;
-            padding: 20px;
+            background: #fff;
+            padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-            flex: 1;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+            width: 33%; /* Equal width for all columns */
+            min-width: 300px; /* Minimum width to prevent squashing */
+            max-width: 400px; /* Maximum width to maintain design */
+            transition: transform 0.2s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
         }
 
         h1 {
             font-size: 24px;
-            margin: 0 0 20px;
-            text-align: center;
             color: #1f6b85;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
         }
 
+        /* Instructions */
         .instructions {
             font-size: 14px;
-            color: #666;
+            color: #777;
             margin-bottom: 20px;
-            text-align: left;
-            line-height: 1.5;
+            line-height: 1.8;
         }
 
+        /* Labels and Inputs */
         label {
-            display: block;
             font-size: 14px;
-            font-weight: bold;
-            margin: 10px 0 5px;
-            text-align: left;
-            color: #555;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+            display: block;
         }
 
         input[type="number"],
         input[type="date"],
         input[type="file"],
-        select {
+        select,
+        input[type="text"]#newVehicle {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 15px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
+            border-radius: 6px;
             font-size: 14px;
+            background: #fafafa;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        input[type="text"]#newVehicle:focus {
+            border-color: #2985A5;
+            box-shadow: 0 0 5px rgba(41, 133, 165, 0.3);
+            outline: none;
         }
 
         input[type="file"] {
-            padding: 5px;
+            padding: 8px;
         }
 
         input[type="text"]#newVehicle {
-            width: calc(100% - 130px); /* Adjust width to fit container minus button */
+            width: calc(100% - 130px);
             display: inline-block;
             margin-right: 10px;
             vertical-align: middle;
+        }
+
+        /* Buttons */
+        button {
+            background: linear-gradient(135deg, #1f6b85, #2a7a9a);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 10px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2985A5, #3391b5);
+            transform: translateY(-2px);
         }
 
         button#addVehicleBtn {
@@ -108,54 +153,50 @@
             vertical-align: middle;
         }
 
-        button {
-            background-color: #1f6b85;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            margin-top: 10px;
-            transition: background-color 0.3s;
+        .delete-btn {
+            background: linear-gradient(135deg, #dc3545, #e04b59);
+            padding: 6px 12px;
+            font-size: 12px;
         }
 
-        button:hover {
-            background-color: #2985A5;
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #c82333, #d93746);
         }
 
+        /* Result */
         #result {
             margin-top: 20px;
             font-size: 18px;
-            color: #333;
+            color: #1f6b85;
             text-align: center;
+            font-weight: 500;
         }
 
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            table-layout: auto;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
         }
 
         th, td {
-            border: 1px solid #ddd;
-            padding: 6px;
+            border: 1px solid #e0e0e0;
+            padding: 8px; /* Reduced slightly for better fit */
             text-align: left;
-            white-space: nowrap;
         }
 
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            color: #555;
-            cursor: pointer;
+            background: #f7f9fc;
+            font-weight: 600;
+            color: #444;
             position: relative;
         }
 
         th:hover {
-            background-color: #e8e8e8;
+            background: #eef2f7;
         }
 
         th.sortable::after {
@@ -172,60 +213,50 @@
         }
 
         td {
-            color: #333;
+            color: #555;
         }
 
         th, td {
-            min-width: 45px;
+            min-width: 50px; /* Adjusted for better fit within 400px */
         }
 
         .editable-input {
             width: 100%;
-            min-width: 60px;
-            max-width: 100%;
-            padding: 4px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
             font-size: 12px;
-            box-sizing: border-box;
+            background: #fafafa;
+            transition: border-color 0.3s ease;
         }
 
+        .editable-input:focus {
+            border-color: #2985A5;
+            outline: none;
+        }
+
+        /* Vehicle Selector */
         .vehicle-selector {
             margin-bottom: 20px;
         }
 
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.3s;
-        }
-
-        .delete-btn:hover {
-            background-color: #c82333;
-        }
-
+        /* Total Cost */
         #totalCost {
             margin-top: 15px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             text-align: right;
             color: #1f6b85;
-            padding: 5px 0;
         }
 
-        /* Responsive adjustments */
+        /* Responsive Adjustments */
         @media (max-width: 900px) {
             .container {
-                flex-direction: column;
-                align-items: center;
+                flex-wrap: wrap; /* Allow wrapping on smaller screens */
             }
 
             .section {
+                width: 100%;
                 max-width: 100%;
             }
 
@@ -235,7 +266,7 @@
 
             th, td {
                 font-size: 12px;
-                padding: 4px;
+                padding: 6px;
             }
 
             .editable-input {
@@ -243,7 +274,7 @@
             }
 
             .delete-btn {
-                padding: 3px 6px;
+                padding: 4px 8px;
             }
 
             input[type="text"]#newVehicle {
@@ -256,27 +287,31 @@
             }
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="wrapper">
         <div class="page-header">
-            <h1>Mileage & Fuel Tracker</h1>
+            <h1>Mileage Tracker Pro</h1>
         </div>
         <div class="container">
             <!-- Column 1: Mileage Calculator -->
             <div class="section">
                 <h1>Mileage Calculator</h1>
                 <form id="mileageForm">
-                    <label for="tankCapacity">Tank Capacity (liters):</label>
+                    <label for="tankCapacity">Tank Capacity (liters)</label>
                     <input type="number" id="tankCapacity" step="0.1" min="0" required>
 
-                    <label for="fullPoints">Fuel Meter Points (Full Tank):</label>
+                    <label for="fullPoints">Fuel Meter Points (Full Tank)</label>
                     <input type="number" id="fullPoints" min="1" required>
 
-                    <label for="remainingPoints">Remaining Points:</label>
+                    <label for="fuelFilled">Fuel Filled (liters)</label>
+                    <input type="number" id="fuelFilled" step="0.1" min="0" required>
+
+                    <label for="remainingPoints">Remaining Points</label>
                     <input type="number" id="remainingPoints" min="0" required>
 
-                    <label for="distance">Distance Traveled (km):</label>
+                    <label for="distance">Distance Traveled (km)</label>
                     <input type="number" id="distance" min="0" required>
 
                     <button type="submit">Calculate Mileage</button>
@@ -291,7 +326,7 @@
                     1. Select or add a vehicle below.<br>
                     2. Load a <code>fuel_log.txt</code> file or edit/add entries in the table.<br>
                     3. All fields in the table are editable; mileage updates live.<br>
-                    4. On your mobile phone: Move the downloaded file to your folder.
+                    4. On your device: Move the downloaded file to your desired folder.
                 </div>
                 <div class="vehicle-selector">
                     <label for="vehicleSelect">Select Vehicle:</label>
@@ -299,7 +334,7 @@
                     <input type="text" id="newVehicle" placeholder="New Vehicle Name">
                     <button id="addVehicleBtn">Add Vehicle</button>
                 </div>
-                <label for="loadFile">Load Fuel Log:</label>
+                <label for="loadFile">Load Fuel Log</label>
                 <input type="file" id="loadFile" accept=".txt">
             </div>
 
@@ -335,6 +370,7 @@
 
             const tankCapacity = parseFloat(document.getElementById('tankCapacity').value);
             const fullPoints = parseInt(document.getElementById('fullPoints').value);
+            const fuelFilled = parseFloat(document.getElementById('fuelFilled').value);
             const remainingPoints = parseInt(document.getElementById('remainingPoints').value);
             const distance = parseFloat(document.getElementById('distance').value);
 
@@ -343,10 +379,19 @@
                 return;
             }
 
+            if (fuelFilled > tankCapacity) {
+                document.getElementById('result').innerHTML = "Error: Fuel Filled cannot exceed Tank Capacity!";
+                return;
+            }
+
             const litersPerPoint = tankCapacity / fullPoints;
-            const pointsUsed = fullPoints - remainingPoints;
-            const fuelConsumed = pointsUsed * litersPerPoint;
-            const mileage = distance / fuelConsumed;
+            const fuelFilledInPoints = fuelFilled / litersPerPoint;
+            const fuelConsumedInPoints = fuelFilledInPoints - remainingPoints;
+            if (fuelConsumedInPoints <= 0) {
+                document.getElementById('result').innerHTML = "Error: Fuel consumed must be greater than zero!";
+                return;
+            }
+            const mileage = distance / fuelConsumedInPoints;
 
             document.getElementById('result').innerHTML = `Mileage: ${mileage.toFixed(2)} km/L`;
         });
@@ -604,7 +649,7 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
 
-            alert('File downloaded to your Downloads folder. On your mobile phone: Open the Files app, find the file in Downloads, and move it to your desired folder.');
+            alert('File downloaded to your Downloads folder. On your device: Move the downloaded file to your desired folder.');
         });
 
         // Initial setup
